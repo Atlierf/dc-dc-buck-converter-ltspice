@@ -1,0 +1,88 @@
+LTspice 17.2.4 for MacOS
+Circuit: * Closed-loop educational buck-converter testbench for LTspice
+Start Time: Thu Nov 12 18:23:22 2026
+solver = Normal
+Maximum thread count: 1
+
+
+
+Direct Newton iteration for .op point succeeded.
+.step vin_dc=10
+
+
+
+.step vin_dc=12
+tnom = 27
+temp = 27
+method = modified trap
+.step vin_dc=14
+
+
+Measurement: vpre
+  step	AVG(v(out))	FROM	TO
+     1	4.71365	0.0015	0.0019
+     2	5.02281	0.0015	0.0019
+     3	5.24567	0.0015	0.0019
+
+Measurement: vpost
+  step	AVG(v(out))	FROM	TO
+     1	4.92692	0.004	0.0049
+     2	4.98868	0.004	0.0049
+     3	5.01439	0.004	0.0049
+
+Measurement: vpp_post
+  step	PP(v(out))	FROM	TO
+     1	0.0727105	0.004	0.0049
+     2	0.0458789	0.004	0.0049
+     3	0.0538421	0.004	0.0049
+
+Measurement: ilpp_post
+  step	PP(i(l1))	FROM	TO
+     1	0.25966	0.004	0.0049
+     2	0.304892	0.004	0.0049
+     3	0.340115	0.004	0.0049
+
+Measurement: vmin_step
+  step	MIN(v(out))	FROM	TO
+     1	4.58144	0.002	0.00499
+     2	4.81487	0.002	0.00499
+     3	4.96614	0.002	0.00499
+
+Measurement: vmax_step
+  step	MAX(v(out))	FROM	TO
+     1	4.9644	0.002	0.00499
+     2	5.01163	0.002	0.00499
+     3	5.14355	0.002	0.00499
+
+Measurement: t_band_last
+  step	time	at
+     1	0.00420006	0.00420006
+     2	0.00246002	0.00246002
+     3	0.00203436	0.00203436
+
+Measurement: tsettle_ms
+  step	(t_band_last-2m)*1000
+     1	2.20006
+     2	0.460019
+     3	0.0343633
+
+Measurement: pin_post
+  step	AVG(-v(in)*i(vbus))	FROM	TO
+     1	5.26507	0.004	0.0049
+     2	5.37662	0.004	0.0049
+     3	5.42588	0.004	0.0049
+
+Measurement: pout_post
+  step	AVG(v(out)*i(bload))	FROM	TO
+     1	4.85496	0.004	0.0049
+     2	4.97741	0.004	0.0049
+     3	5.02884	0.004	0.0049
+
+Measurement: eff_post
+  step	100*pout_post/pin_post
+     1	92.2107
+     2	92.5751
+     3	92.6826
+
+Total elapsed time: 2.035 seconds.
+

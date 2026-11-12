@@ -25,7 +25,7 @@ The 180 mΩ DCR and 130 mΩ ESR are maximum/assumed datasheet-based values docum
 - `docs/final_quality_checklist.md` — completion and remaining-work checklist.
 - `results/` — committed LTspice log and rendered waveform plots.
 
-## Recorded simulation summary
+## Simulation summary
 
 The committed LTspice 17.2.4 run reports post-step average output values of 4.9269 V, 4.9887 V, and 5.0144 V for 10 V, 12 V, and 14 V input, respectively. These averages are within ±2% of 5 V over the specified measurement window. The output-ripple target of <50 mVpp is met at 12 V (45.88 mVpp), but not at 10 V (72.71 mVpp) or 14 V (53.84 mVpp).
 

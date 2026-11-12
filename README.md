@@ -1,4 +1,4 @@
-# 12 V to 5 V Buck Converter Project
+# 12 V to 5 V Buck Converter 
 
 This repository documents a complete engineering study of a 12 V-to-5 V DC-DC buck converter designed and simulated in LTspice.
 

@@ -32,7 +32,3 @@ The committed LTspice 17.2.4 run reports post-step average output values of 4.92
 ## Run the simulation
 
 Open `ltspice/buck_converter_closed_loop.cir` in LTspice and run the transient analysis. Plot `V(out)`, `I(L1)`, `V(sw)`, and `V(duty)`. See `docs/simulation_procedure.md` for measurement windows and important caveats. The checked-in result log and plots correspond to the parameter set and netlist revision described in `results/README.md`.
-
-## Scope and limitations
-
-This is an educational simulation study, not a hardware-validated supply. The controller is behavioral, the switch model omits real MOSFET gate-drive and switching losses, and passive models omit several frequency, temperature, and tolerance effects. The measured efficiency is a simulation estimate for this model only. Remaining improvements are listed in `docs/final_quality_checklist.md`.

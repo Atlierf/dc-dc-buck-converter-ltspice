@@ -156,28 +156,28 @@ The PI gains and semiconductor models are educational starting assumptions. The 
 
 ### 7.2 Steady-state regulation
 
-**Result:** Post-step average `V(out)` (`4.0–4.9 ms`):
-- `10 V` input: `4.9254 V` (`-1.49%` error; still approaching `5.0 V` from `4.9463 V` at `5 ms`)
-- `12 V` input: `5.0027 V` (`+0.05%` error)
-- `14 V` input: `5.0193 V` (`+0.39%` error)
+**Result:** Post-step average `V(out)` (`4.0–4.9 ms`, with `MBRS340`, `DCR = 180 mΩ`, `CESR = 130 mΩ`):
+- `10 V` input: `4.9269 V` (`-1.46%` error; still approaching `5.0 V` at `4.9323 V` by `5 ms`)
+- `12 V` input: `4.9887 V` (`-0.23%` error)
+- `14 V` input: `5.0144 V` (`+0.29%` error)
 
 ### 7.3 Output and inductor ripple
 
 **Result:** Post-step peak-to-peak ripple (`4.0–4.9 ms`):
-- `10 V` input: `45.95 mVpp` output ripple (`< 50 mVpp` target), `0.3070 App` inductor ripple
-- `12 V` input: `18.66 mVpp` output ripple (`< 50 mVpp` target), `0.3285 App` inductor ripple
-- `14 V` input: `33.60 mVpp` output ripple (`< 50 mVpp` target), `0.3694 App` inductor ripple
+- `10 V` input: `72.71 mVpp` output ripple (includes slow settling drift), `0.2597 App` inductor ripple
+- `12 V` input: `45.88 mVpp` output ripple (`< 50 mVpp` target), `0.3049 App` inductor ripple
+- `14 V` input: `53.84 mVpp` output ripple (reflects the `130 mΩ` datasheet max ESR), `0.3401 App` inductor ripple
 
 ### 7.4 Load transient
 
 **Result:** After the `0.5 A → 1.0 A` load step at `2 ms` (using a `4.9–5.1 V` regulation band):
-- `10 V` input: minimum `4.5548 V`, maximum `4.9587 V`, settling time `1.731 ms`
-- `12 V` input: minimum `4.7897 V`, maximum `5.0125 V`, settling time `0.410 ms`
-- `14 V` input: minimum `4.9391 V`, maximum `5.1172 V`, settling time `0.008 ms`
+- `10 V` input: minimum `4.5814 V`, maximum `4.9644 V`, settling time `2.200 ms`
+- `12 V` input: minimum `4.8149 V`, maximum `5.0116 V`, settling time `0.460 ms`
+- `14 V` input: minimum `4.9661 V`, maximum `5.1436 V`, settling time `0.034 ms`
 
 ### 7.5 Input-voltage variation
 
-**Result:** Across the `10 V → 14 V` line sweep, post-step average `V(out)` varies from `4.9254 V` to `5.0193 V` (`93.9 mV` total spread, `1.88%` of `5 V`), with the controller adjusting duty cycle from `~0.54` (10 V) to `~0.46` (12 V) to `~0.40` (14 V).
+**Result:** Across the `10 V → 14 V` line sweep, post-step average `V(out)` varies from `4.9269 V` to `5.0144 V` (`87.5 mV` total spread, `1.75%` of `5 V`), with the controller adjusting duty cycle (`t ≥ 4 ms`) across `0.526–0.569` (10 V), `0.447–0.494` (12 V), and `0.387–0.438` (14 V). See `docs/component_models.md` for verified part ratings and model simplifications.
 
 ## 8. Discussion of non-ideal behavior
 

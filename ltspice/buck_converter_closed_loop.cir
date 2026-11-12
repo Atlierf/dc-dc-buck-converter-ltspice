@@ -10,8 +10,9 @@
 .param TSW={1/FS}
 .param LVAL=100u
 .param COUT=220u
-.param DCR=70m
-.param CESR=50m
+* Bourns SRR1260-101M datasheet max DCR (180 mOhm) and Panasonic EEU-FR1C221 max 100 kHz impedance/ESR (130 mOhm)
+.param DCR=180m
+.param CESR=130m
 .param KP=0.015
 .param KI=65
 .param KD=1.2
@@ -39,14 +40,15 @@ Bint 0 ci I=if(V(duty)>=0.899 & V(err)>0,0,if(V(duty)<=0.051 & V(err)<0,0,KI*V(e
 Cint ci 0 1 IC=0
 Rleak ci 0 100Meg
 
-* PWM comparator and high-side switch
+* High-side switch: assumed idealized voltage-controlled switch (ground-referenced 0-5 V gate drive;
+* no floating/bootstrap MOSFET gate driver is modeled).
 Bgate gate 0 V=if(V(ramp)<V(duty),5,0)
 S1 in sw gate 0 SWMOD
 .model SWMOD SW(Ron=30m Roff=1Meg Vt=2.5 Vh=0.1)
 
-* Freewheel Schottky-style diode: anode at ground, cathode at switch node
-D1 0 sw Dsch
-.model Dsch D(Is=1n Rs=20m N=1.2 Cjo=50p M=0.5 Eg=0.6)
+* Freewheel Schottky diode: onsemi MBRS340 (40 V, 3 A) from LTspice 17.2.4 standard.dio
+D1 0 sw MBRS340
+.model MBRS340 D(Is=22.6u Rs=.042 N=1.094 Cjo=480p M=.61 Eg=.69 Xti=2 Iave=3 Vpk=40 mfg=OnSemi type=Schottky)
 
 * Inductor and its winding resistance
 Rind sw nL {DCR}

@@ -1,4 +1,4 @@
-# 12 V to 5 V Buck Converter LTspice Project
+# 12 V to 5 V Buck Converter (LTspice)
 
 This repository contains a practical LTspice simulation of a 12 V-to-5 V DC-DC buck converter intended for design and performance characterisation.
 

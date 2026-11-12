@@ -2,78 +2,113 @@
 
 ## Objective and modeled operating point
 
-The project studies conversion from a 12 V nominal DC input to a 5 V target at up to 1 A. The closed-loop LTspice testbench separately steps the input parameter through 10 V, 12 V, and 14 V. It switches the modeled load from 10 Ω (0.5 A nominal at 5 V) to 5 Ω (1 A nominal at 5 V) at 2 ms.
+The project studies conversion from a 12 V nominal DC input to a 5 V target at up to 1 A. The closed-loop LTspice testbench separately steps the input through 10 V, 12 V, and 14 V. It changes the modeled load from 10 ohms (about 0.5 A at 5 V) to 5 ohms (about 1 A at 5 V) at 2 ms.
 
-The main model uses 100 kHz switching, 100 µH inductance, 220 µF output capacitance, 180 mΩ inductor DCR, and 130 mΩ capacitor ESR. The latter values and model provenance are recorded in `component_models.md`.
+The main model uses a 100 kHz switching frequency, 100 µH inductance, 220 µF output capacitance, 180 mΩ inductor DCR, and 130 mΩ capacitor ESR. The latter values and model provenance are recorded in `component_models.md`.
+
+## Symbol guide
+
+| Symbol | Meaning | Unit |
+|---|---|---|
+| `Vin` | Input voltage | V |
+| `Vout` | Output voltage | V |
+| `D` | Switch duty cycle (fraction of each period that the switch is on) | unitless, 0 to 1 |
+| `fs` | Switching frequency | Hz |
+| `Ts` | Switching period, equal to `1 / fs` | s |
+| `L` | Inductance | H |
+| `C` | Capacitance | F |
+| `ΔIL` | Peak-to-peak inductor-current ripple | A |
+| `ΔVC` | Capacitive part of output-voltage ripple | V |
+| `ESR` | Capacitor equivalent series resistance | ohm |
 
 ## How a buck converter works
 
-The switch connects the input to the inductor for part of each cycle. When it turns off, the inductor current continues through the freewheel diode. The inductor and capacitor smooth the switched energy into a DC output.
+The switch connects the input to the inductor for part of each switching cycle. When it turns off, the inductor current continues through the freewheel diode. The inductor and capacitor smooth the switched energy into a DC output.
 
-For an ideal buck converter in continuous conduction:
+For an ideal buck converter operating in continuous-conduction mode, the relationship is:
 
-\[
-V_{out}\approx D V_{in}
-\]
+```text
+Vout ≈ D × Vin
+```
 
-At 12 V input and 5 V output, the ideal duty ratio is:
+At 12 V input and 5 V output, the ideal duty cycle is:
 
-\[
-D\approx\frac{5}{12}=0.4167
-\]
+```text
+D ≈ Vout / Vin
+  ≈ 5 V / 12 V
+  ≈ 0.4167 (about 41.7%)
+```
 
-The closed-loop model changes duty in response to output error; its behavioral PID values are `KP=0.015`, `KI=65`, and `KD=1.2`. The separate baseline netlist uses a fixed duty ratio and is not a regulator.
+The closed-loop model changes duty in response to output error. Its behavioral PID values are `KP = 0.015`, `KI = 65`, and `KD = 1.2`. The separate baseline netlist uses a fixed duty cycle and is not a regulator.
 
 ## Inductor estimate
 
-For a buck converter, an approximate inductor sizing relation is:
+A first-pass buck-converter inductor-sizing equation is:
 
-\[
-L=\frac{(V_{in}-V_{out})D}{f_s\Delta I_L}
-\]
+```text
+L = ((Vin - Vout) × D) / (fs × ΔIL)
+```
 
-Using 12 V, 5 V, 100 kHz, and a 0.3 A peak-to-peak ripple target gives:
+Using `Vin = 12 V`, `Vout = 5 V`, `D = 0.4167`, `fs = 100 kHz`, and a target ripple of `ΔIL = 0.3 A`:
 
-\[
-L\approx\frac{(12-5)(0.4167)}{100\,000(0.3)}\approx97.2\,\mu H
-\]
+```text
+L ≈ ((12 V - 5 V) × 0.4167) / (100,000 Hz × 0.3 A)
+  ≈ 97.2 µH
+```
 
-The selected model value is 100 µH. Its ideal nominal ripple estimate is approximately 0.292 App. At 1 A average output current, estimated peak inductor current is about 1.146 A. This is below the documented 1.70 A inductor saturation-current rating, though the model does not simulate inductance roll-off near saturation.
+The selected model value is 100 µH. Its ideal nominal ripple estimate is approximately 0.292 A peak-to-peak. At 1 A average output current, estimated peak inductor current is:
+
+```text
+IL_peak ≈ Iout + (ΔIL / 2)
+        ≈ 1 A + (0.292 A / 2)
+        ≈ 1.146 A
+```
+
+This is below the documented 1.70 A inductor saturation-current rating, although the simulation does not model inductance roll-off near saturation.
 
 ## Output capacitor estimate
 
-Ignoring ESR, the capacitive ripple estimate is:
+Ignoring ESR, the capacitive part of output ripple can be estimated by:
 
-\[
-\Delta V_C\approx\frac{\Delta I_L}{8f_sC}
-\]
+```text
+ΔVC ≈ ΔIL / (8 × fs × C)
+```
 
-For 0.3 A, 100 kHz, and 220 µF, this is about 1.7 mVpp. The simple ESR contribution at 130 mΩ is approximately:
+For `ΔIL = 0.3 A`, `fs = 100 kHz`, and `C = 220 µF`:
 
-\[
-\Delta V_{ESR}\approx\Delta I_L\times ESR\approx0.3(0.13)=39\,mV_{pp}
-\]
+```text
+ΔVC ≈ 0.3 A / (8 × 100,000 Hz × 220 µF)
+    ≈ 1.7 mV peak-to-peak
+```
 
-These estimates do not replace measurements of the switching waveform. In the committed simulation, measured post-step output ripple was 72.71 mVpp at 10 V, 45.88 mVpp at 12 V, and 53.84 mVpp at 14 V.
+A simple estimate of the ESR contribution is:
+
+```text
+ΔVESR ≈ ΔIL × ESR
+      ≈ 0.3 A × 0.13 ohm
+      ≈ 39 mV peak-to-peak
+```
+
+These are approximate estimates, not substitutes for measuring the switching waveform. The committed simulation reports post-step output ripple of 72.71 mVpp at 10 V input, 45.88 mVpp at 12 V, and 53.84 mVpp at 14 V.
 
 ## Non-ideal models and limits
 
-The closed-loop testbench models the MBRS340 Schottky diode using the LTspice library model, finite switch on-resistance of 30 mΩ, inductor DCR of 180 mΩ, and output-capacitor ESR of 130 mΩ. The switch is not a real MOSFET model and is driven by a ground-referenced behavioral PWM source. Switching losses, gate charge, thermal rise, PCB parasitics, inductor core loss, ESR variation, and component tolerances are not fully represented. Refer to `docs/component_models.md` before interpreting results as representative of hardware.
+The closed-loop testbench models the MBRS340 Schottky diode using the LTspice library model, finite switch on-resistance of 30 mΩ, inductor DCR of 180 mΩ, and output-capacitor ESR of 130 mΩ. The high-side switch is an idealized voltage-controlled switch, not a specific MOSFET. Gate-drive and switching losses, thermal rise, PCB parasitics, inductor core loss, ESR variation, and component tolerances are not fully represented. See `docs/component_models.md` for details.
 
 ## Recorded simulation outcomes
 
-The committed run's post-step average output values are within ±2% of 5 V in the 4.0–4.9 ms measurement window. The ripple goal of <50 mVpp is met only at the 12 V input case. At 10 V and 14 V the measured ripple exceeds the goal.
+The committed run's post-transition average output values, measured from 4.0 ms to 4.9 ms, are within ±2% of 5 V. The output-ripple goal of less than 50 mVpp is met only at the 12 V input case. At 10 V and 14 V, ripple exceeds the target.
 
-The 10 V and 14 V cases were still outside the ±2% regulation band in the 1.5–1.9 ms pre-step window. Consequently, the 2 ms transition is not a clean load-step test from established steady state for those cases. Repeat the test with a longer pre-step settling interval before claiming load-step performance.
+The 10 V and 14 V cases were outside the ±2% regulation band during the pre-transition measurement window (1.5 ms to 1.9 ms). Therefore, the transition at 2 ms is not a clean load-step test from an established steady-state operating point for those two cases. The reported settling-time values should be interpreted with this limitation.
 
-## Evaluation equations
+## Power and efficiency equations
 
-For power and efficiency, average input and output power over the same steady-state interval:
+Average input and output power must be measured over the same steady-state interval:
 
-\[
-P_{in}=\operatorname{avg}(-V(in)I(VBus)),\quad
-P_{out}=\operatorname{avg}(V(out)I(Bload)),\quad
-\eta=100\frac{P_{out}}{P_{in}}\%
-\]
+```text
+Pin  = average(-V(in) × I(VBus))
+Pout = average( V(out) × I(Bload))
+Efficiency (%) = 100 × Pout / Pin
+```
 
-The negative sign for input power follows the LTspice voltage-source current convention in this netlist. The reported efficiencies are model-dependent estimates, not measured hardware efficiencies.
+The minus sign in the input-power equation follows the LTspice voltage-source current convention used by this netlist. The reported efficiencies are estimates from the behavioral simulation, not hardware efficiency measurements.

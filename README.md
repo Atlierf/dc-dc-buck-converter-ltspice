@@ -27,7 +27,7 @@ The 180 mΩ DCR and 130 mΩ ESR are maximum/assumed datasheet-based values docum
 
 ## Recorded simulation summary
 
-The committed LTspice 17.2.4 for macOS run reports post-step average output values of 4.9269 V, 4.9887 V, and 5.0144 V for 10 V, 12 V, and 14 V input, respectively. These averages are within ±2% of 5 V over the specified measurement window. The output-ripple target of <50 mVpp is met at 12 V (45.88 mVpp), but not at 10 V (72.71 mVpp) or 14 V (53.84 mVpp).
+The committed LTspice 17.2.4 run reports post-step average output values of 4.9269 V, 4.9887 V, and 5.0144 V for 10 V, 12 V, and 14 V input, respectively. These averages are within ±2% of 5 V over the specified measurement window. The output-ripple target of <50 mVpp is met at 12 V (45.88 mVpp), but not at 10 V (72.71 mVpp) or 14 V (53.84 mVpp).
 
 These are simulation results for the documented behavioral model, not hardware measurements. The 10 V and 14 V cases were not within the ±2% band before the 2 ms load transition, so the recorded “settling time” should not be interpreted as a clean, preconditioned load-step response. See `docs/project_report.md` and `docs/results_template.md` for details.
 

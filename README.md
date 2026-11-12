@@ -1,20 +1,20 @@
-# 12 V to 5 V Buck Converter 
+# 12 V to 5 V Buck Converter Project
 
-This repository documents a complete engineering study of a 12 V-to-5 V DC-DC buck converter designed and simulated in LTspice.
+This repository contains a complete engineering study of a 12 V-to-5 V DC-DC buck converter designed and simulated in LTspice.
 
-## Objective
+## Project objective
 
 The project aims to:
 
-- design a 12 V-to-5 V buck converter based on practical switching-power theory
-- calculate the required component values from selected design constraints
-- simulate the converter in LTspice under nominal, line-variation, and load-variation conditions
-- study non-ideal behaviour due to inductor resistance, capacitor ESR, diode voltage drop, and finite switch conduction losses
-- evaluate output regulation, ripple, transient response, and efficiency trends
+- design a 12 V-to-5 V buck converter from first principles
+- calculate component values using switching-power equations
+- simulate the power stage in LTspice
+- evaluate the effect of non-ideal components
+- analyse the output voltage, ripple, and transient response
 
 ## Design specification
 
-| Parameter | Target |
+| Parameter | Value |
 |---|---:|
 | Input voltage | 12 V nominal |
 | Output voltage | 5 V regulated |
@@ -22,82 +22,86 @@ The project aims to:
 | Switching frequency | 100 kHz |
 | Inductor ripple target | 0.3 A peak-to-peak |
 | Output ripple target | low ripple, typically < 50 mVpp |
-| Operating input range | 10–14 V |
+| Input operating range | 10 V to 14 V |
 
-## Design approach
+## Baseline design summary
 
-The converter is designed using the standard buck-converter relationship:
+The ideal buck-converter duty cycle is:
 
-Vout ≈ D × Vin
+D ≈ Vout / Vin = 5 / 12 ≈ 0.417
 
-For a 12 V input and 5 V output, the ideal duty cycle is approximately:
-
-D ≈ 5 / 12 ≈ 0.417
-
-The initial inductor value is estimated as:
+The initial inductor value is estimated from:
 
 L ≈ ((Vin - Vout) × D) / (fs × ΔIL)
 
-Using Vin = 12 V, Vout = 5 V, fs = 100 kHz, and ΔIL = 0.3 A gives:
+For Vin = 12 V, Vout = 5 V, fs = 100 kHz, and ΔIL = 0.3 A:
 
 L ≈ 97 µH
 
-A practical starting value of 100 µH is therefore selected.
+A practical starting value of 100 µH is selected.
 
-## Repository structure
+## Repository contents
 
-- `README.md` — overview and project summary
-- `docs/design_notes.md` — design equations and engineering notes
-- `docs/project_report.md` — complete engineering report with methodology and discussion
-- `ltspice/buck_converter.cir` — LTspice transient simulation netlist
+- `README.md` — overview of the project
+- `docs/design_notes.md` — engineering notes and equations
+- `docs/project_report.md` — written project report draft
+- `docs/simulation_procedure.md` — how to run the LTspice tests
+- `docs/results_template.md` — measurement table for collecting results
+- `ltspice/buck_converter.cir` — LTspice netlist for the buck-converter power stage
 
-## Simulation scope
+## What the simulation currently models
 
-The LTspice file includes:
+The LTspice netlist represents:
 
-- a 12 V supply
-- ideal PWM-controlled switch
-- Schottky freewheel diode
-- 100 µH inductor and output capacitor
-- ESR and DCR modelling
+- a 12 V DC source
+- a switching transistor stage
+- a Schottky freewheel diode
+- 100 µH inductor with series resistance
+- 220 µF output capacitor with ESR
 - nominal 1 A resistive load
-- parameter sweeps for input and load variation
 
-The project evaluates:
+It is suitable for evaluating:
 
-- startup behaviour
-- steady-state output voltage
+- the switching waveform
 - inductor current ripple
-- output ripple
-- line regulation
-- load regulation
-- transient response under load steps
+- output voltage ripple
+- start-up transient behaviour
+- line and load effects in the power stage
 
-## How to use
+## Important note
+
+This version is a baseline power-stage simulation. It does not yet include a closed-loop feedback controller that automatically regulates the output under changing load and input conditions. The project therefore represents a solid engineering starting point, but a full regulated converter would require:
+
+- feedback divider
+- error amplifier or comparator
+- PWM control loop
+- compensation network
+- a more realistic gate-driver and MOSFET model
+
+## How to run the LTspice simulation
 
 1. Open LTspice.
 2. Open `ltspice/buck_converter.cir`.
 3. Run the transient analysis.
-4. Plot desired signals such as:
-   - V(out)
-   - I(L1)
-   - V(sw)
-   - output ripple
+4. Plot:
+   - `V(out2)` for output voltage
+   - `I(L1)` for inductor current
+   - `V(sw)` for the switch node
 
-## Expected findings
+## What to record
 
-At nominal conditions, the output should settle close to 5 V. The real implementation will show deviation from the ideal model because of active losses, component parasitics, and switching dynamics. These effects are explored in the report and design notes.
+Use `docs/results_template.md` and record:
 
-## Future work
+- output voltage at each input/load condition
+- ripple voltage
+- inductor ripple current
+- settling time after load step
+- thermal or loss observations if available
 
-Possible extensions include:
+## Future extension
 
-- closed-loop regulation with feedback and compensation
-- synchronous buck converter design
-- MOSFET and diode loss estimation
-- thermal analysis and efficiency mapping
-- PCB implementation and prototype validation
+The next development step is to add a closed-loop regulated design so the output remains at 5 V when the input source or load current changes. This would be a more complete engineering implementation and a stronger final project.
 
-## Contribution
+## Summary
 
-This project is intended for engineering study and simulation-based analysis. It can be used as a basis for coursework, design review, or a prototype development project.
+The repository is already a credible starter project for a 12 V-to-5 V buck converter and contains the basic theory, calculations, LTspice model, and project documentation. It is now ready for simulation execution and result collection, while remaining open to further extension into a fully regulated converter design.

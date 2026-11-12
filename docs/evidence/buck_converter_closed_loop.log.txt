@@ -1,0 +1,58 @@
+LTspice 17.2.4 for MacOS
+Circuit: * Closed-loop educational buck-converter testbench for LTspice
+Start Time: Thu Nov 12 18:15:28 2026
+solver = Normal
+Maximum thread count: 1
+
+
+
+Direct Newton iteration for .op point succeeded.
+.step vin_dc=10
+
+
+
+.step vin_dc=12
+tnom = 27
+temp = 27
+method = modified trap
+.step vin_dc=14
+
+
+Measurement: vpre
+  step	AVG(v(out))	FROM	TO
+     1	4.67198	0.0015	0.0019
+     2	4.96429	0.0015	0.0019
+     3	5.16974	0.0015	0.0019
+
+Measurement: vpost
+  step	AVG(v(out))	FROM	TO
+     1	4.92544	0.004	0.0049
+     2	5.00267	0.004	0.0049
+     3	5.01931	0.004	0.0049
+
+Measurement: vpp_post
+  step	PP(v(out))	FROM	TO
+     1	0.0459518	0.004	0.0049
+     2	0.0186629	0.004	0.0049
+     3	0.0335994	0.004	0.0049
+
+Measurement: ilpp_post
+  step	PP(i(l1))	FROM	TO
+     1	0.307009	0.004	0.0049
+     2	0.328539	0.004	0.0049
+     3	0.369438	0.004	0.0049
+
+Measurement: vmin_step
+  step	MIN(v(out))	FROM	TO
+     1	4.5548	0.002	0.00499
+     2	4.78968	0.002	0.00499
+     3	4.93906	0.002	0.00499
+
+Measurement: vmax_step
+  step	MAX(v(out))	FROM	TO
+     1	4.9587	0.002	0.00499
+     2	5.01254	0.002	0.00499
+     3	5.11716	0.002	0.00499
+
+Total elapsed time: 1.758 seconds.
+

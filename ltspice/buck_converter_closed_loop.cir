@@ -12,8 +12,9 @@
 .param COUT=220u
 .param DCR=70m
 .param CESR=50m
-.param KP=0.08
-.param KI=500
+.param KP=0.015
+.param KI=65
+.param KD=1.2
 
 * Input, stepped for line-regulation study
 VBus in 0 {VIN_DC}
@@ -23,10 +24,14 @@ VBus in 0 {VIN_DC}
 * The 1 ns falling edge resets the carrier at the end of each period.
 Vtri ramp 0 PULSE(0 1 0 {TSW-1n} 1n 0 {TSW})
 
-* PI controller: duty command is bounded from 5% to 90%.
+* PID controller: duty command is bounded from 5% to 90%.
 * Error is positive when the output is below the 5 V reference.
+* Band-limited derivative on V(out) (tau = 8 us, f_pole = 19.9 kHz) adds phase lead
+* around the 1.07 kHz LC resonance while attenuating 100 kHz switching ripple.
 Berr err 0 V=VREF-V(out)
-Bctrl duty 0 V=limit(0.4167+KP*V(err)+V(ci),0.05,0.90)
+Cdiff out d_node 1n
+Rdiff d_node 0 8k
+Bctrl duty 0 V=limit(0.4167+KP*V(err)+V(ci)-KD*V(d_node),0.05,0.90)
 
 * Anti-windup behavior: freeze integration if saturated and error pushes farther
 * into saturation. Cint=1 F makes injected current numerically equal to d(Vci)/dt.
@@ -62,6 +67,7 @@ Bload out 0 I=if(time<2m,V(out)/10,V(out)/5)
 .meas tran VPOST AVG V(out) FROM=4m TO=4.9m
 .meas tran VPP_POST PP V(out) FROM=4m TO=4.9m
 .meas tran ILPP_POST PP I(L1) FROM=4m TO=4.9m
-.meas tran VMIN_STEP MIN V(out) FROM=2m TO=5m
+.meas tran VMIN_STEP MIN V(out) FROM=2m TO=4.99m
+.meas tran VMAX_STEP MAX V(out) FROM=2m TO=4.99m
 
 .end

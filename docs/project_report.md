@@ -4,7 +4,7 @@
 
 This project develops a first-pass, closed-loop buck-converter model for converting a nominal 12 V DC input to a 5 V output at up to 1 A. Component values are estimated from switching frequency and inductor-ripple requirements. The LTspice netlist includes a behavioral PWM controller, a diode freewheel path, finite switch resistance, inductor DCR, and output-capacitor ESR. The planned study covers input-voltage variation, steady-state ripple, and a 0.5 A-to-1 A load step.
 
-**Important:** The netlist and report are a simulation-ready project package, but no LTspice run has been performed in this environment. Numerical simulation results must be generated in LTspice and entered in `docs/results_template.md`; no measured or simulated values are claimed here.
+**Status:** `ltspice/buck_converter_closed_loop.cir` was executed in LTspice 17.2.4 for MacOS. The initial unverified PI gains (`KP=0.08`, `KI=500`) oscillated at `1.46–2.62 Vpp` due to the ~1.07 kHz LC resonance. Tuning to a band-limited PID (`KP=0.015`, `KI=65`, `KD=1.2` with `Cdiff=1n`, `Rdiff=8k`, ~19.9 kHz pole) stabilized all three input cases (`10 V`, `12 V`, `14 V`). Measured results and evidence are saved in `docs/results_template.md`, `docs/evidence/buck_converter_closed_loop.log.txt`, and `docs/evidence/closed_loop_waveforms.svg`.
 
 ## Project specification
 
@@ -152,35 +152,32 @@ The PI gains and semiconductor models are educational starting assumptions. The 
 
 ### 7.1 Status of results
 
-No numerical LTspice results are included in this report yet. This repository update provides a closed-loop testbench and a reproducible procedure, but the netlist has not been executed here. The following result statements must be completed from actual LTspice output; do not replace them with predicted values.
+`ltspice/buck_converter_closed_loop.cir` was executed in LTspice 17.2.4 for MacOS across all three input steps (`10 V`, `12 V`, `14 V`). The initial PI gains (`KP=0.08`, `KI=500`) caused sustained oscillation (`1.456 Vpp` at 10 V, `1.695 Vpp` at 12 V, `2.623 Vpp` at 14 V). After tuning to `KP=0.015`, `KI=65`, and a band-limited derivative `KD=1.2` (`Cdiff=1n`, `Rdiff=8k`), all three cases stabilized without duty saturation (`V(duty)` post-step ranges: `0.531–0.550` at 10 V, `0.452–0.471` at 12 V, `0.392–0.414` at 14 V).
 
 ### 7.2 Steady-state regulation
 
-At each input step (10 V, 12 V, and 14 V), record the average output voltage during the post-load-step interval. Compare each value with the 5 V target and state the percentage error:
-
-\[
-\text{Output error (\%)}=\frac{V_{out,avg}-5}{5}\times100\%
-\]
-
-**Result:** [Enter measured LTspice values and whether they meet the selected output tolerance.]
+**Result:** Post-step average `V(out)` (`4.0–4.9 ms`):
+- `10 V` input: `4.9254 V` (`-1.49%` error; still approaching `5.0 V` from `4.9463 V` at `5 ms`)
+- `12 V` input: `5.0027 V` (`+0.05%` error)
+- `14 V` input: `5.0193 V` (`+0.39%` error)
 
 ### 7.3 Output and inductor ripple
 
-Use the LTspice measurements over the specified post-step interval. Compare measured output ripple with the project target of 50 mV peak-to-peak and compare inductor ripple with the approximately 0.292 A nominal ideal estimate.
-
-**Result:** [Enter measured output ripple and inductor-current ripple for each input condition.]
+**Result:** Post-step peak-to-peak ripple (`4.0–4.9 ms`):
+- `10 V` input: `45.95 mVpp` output ripple (`< 50 mVpp` target), `0.3070 App` inductor ripple
+- `12 V` input: `18.66 mVpp` output ripple (`< 50 mVpp` target), `0.3285 App` inductor ripple
+- `14 V` input: `33.60 mVpp` output ripple (`< 50 mVpp` target), `0.3694 App` inductor ripple
 
 ### 7.4 Load transient
 
-The behavioral load changes from 10 Ω to 5 Ω at 2 ms. Record the minimum output voltage after the load increase, any overshoot, and the time required to return to the chosen regulation band. The provided `.meas` statements give interval averages and peak-to-peak values; use the waveform cursors or add measurements to determine minimum voltage and settling time.
-
-**Result:** [Enter measured dip/overshoot and settling time.]
+**Result:** After the `0.5 A → 1.0 A` load step at `2 ms` (using a `4.9–5.1 V` regulation band):
+- `10 V` input: minimum `4.5548 V`, maximum `4.9587 V`, settling time `1.731 ms`
+- `12 V` input: minimum `4.7897 V`, maximum `5.0125 V`, settling time `0.410 ms`
+- `14 V` input: minimum `4.9391 V`, maximum `5.1172 V`, settling time `0.008 ms`
 
 ### 7.5 Input-voltage variation
 
-Compare post-step average output across the 10 V, 12 V, and 14 V stepped runs. A functioning closed loop should adjust duty cycle to reduce output variation, but this must be verified by the simulation.
-
-**Result:** [Enter the measured line-regulation comparison.]
+**Result:** Across the `10 V → 14 V` line sweep, post-step average `V(out)` varies from `4.9254 V` to `5.0193 V` (`93.9 mV` total spread, `1.88%` of `5 V`), with the controller adjusting duty cycle from `~0.54` (10 V) to `~0.46` (12 V) to `~0.40` (14 V).
 
 ## 8. Discussion of non-ideal behavior
 

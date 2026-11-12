@@ -2,7 +2,7 @@
 * Nominal design: 5 V output at 1 A load
 * 100 kHz switching frequency
 * Duty cycle approx 0.417
-* Includes ESR/DCR and transient load-step analysis
+* Includes ESR/DCR parasitics (fixed-duty, fixed-load baseline)
 
 .param Vin=12
 .param Vout=5
@@ -32,12 +32,12 @@ D1 0 sw Dsch
 Rind sw nL {DCR}
 L1 nL out1 {L1}
 
-* Capacitor with ESR and output node
+* Capacitor with ESR and output node (load connects at out1, before ESR)
 Rcap out1 out2 {ESR}
 C1 out2 0 {Cout}
 
 * Load resistor for nominal condition
-Rload out2 0 {Rload}
+Rload out1 0 {Rload}
 
 * Simulation setup
 .tran 0 5m 0 100n
@@ -47,9 +47,9 @@ Rload out2 0 {Rload}
 * .step param Rload list 10 5
 
 * Optional measurements
-* .meas tran Vout_avg AVG V(out2)
+* .meas tran Vout_avg AVG V(out1)
 * .meas tran I_Lavg AVG I(L1)
-* .meas tran Vout_pp PP V(out2)
+* .meas tran Vout_pp PP V(out1)
 * .meas tran Load_current_param param Iload
 
 * Ideal switch model

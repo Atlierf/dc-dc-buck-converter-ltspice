@@ -25,12 +25,12 @@ Vtri ramp 0 PULSE(0 1 0 {TSW-1n} 1n 0 {TSW})
 
 * PI controller: duty command is bounded from 5% to 90%.
 * Error is positive when the output is below the 5 V reference.
-Berr err 0 V={VREF-V(out)}
+Berr err 0 V=VREF-V(out)
 Bctrl duty 0 V=limit(0.4167+KP*V(err)+V(ci),0.05,0.90)
 
 * Anti-windup behavior: freeze integration if saturated and error pushes farther
 * into saturation. Cint=1 F makes injected current numerically equal to d(Vci)/dt.
-Bint 0 ci I=if(V(duty)>=0.899 && V(err)>0,0,if(V(duty)<=0.051 && V(err)<0,0,KI*V(err)))
+Bint 0 ci I=if(V(duty)>=0.899 & V(err)>0,0,if(V(duty)<=0.051 & V(err)<0,0,KI*V(err)))
 Cint ci 0 1 IC=0
 Rleak ci 0 100Meg
 
@@ -62,5 +62,6 @@ Bload out 0 I=if(time<2m,V(out)/10,V(out)/5)
 .meas tran VPOST AVG V(out) FROM=4m TO=4.9m
 .meas tran VPP_POST PP V(out) FROM=4m TO=4.9m
 .meas tran ILPP_POST PP I(L1) FROM=4m TO=4.9m
+.meas tran VMIN_STEP MIN V(out) FROM=2m TO=5m
 
 .end

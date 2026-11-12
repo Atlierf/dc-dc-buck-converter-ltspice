@@ -139,15 +139,14 @@ If the LTspice model shows a near-constant 5 V output under the selected conditi
 
 ## 11. Recommended next steps
 
-The next engineering development would be to add a closed-loop feedback network so the converter regulates the output automatically rather than relying on a fixed duty cycle. This can be done by introducing:
+A behavioral PI closed-loop testbench (`ltspice/buck_converter_closed_loop.cir`) is included in the repository to evaluate line regulation (10 V, 12 V, 14 V) and the 0.5 A-to-1 A load step at 2 ms. The next engineering development would be to replace the behavioral controller and idealized switches with a manufacturer-specific controller IC and component datasheet models:
 
-- reference voltage
-- error amplifier
-- feedback divider
-- compensation network
-- MOSFET gate-driver model
+- reference voltage and feedback divider
+- error amplifier and compensation network
+- MOSFET gate-driver model and selected power MOSFET/diode models
+- inductor DCR and capacitor ESR from selected part datasheets
 
-This would allow more realistic evaluation of stability and transient performance.
+This would allow more realistic evaluation of stability margins, efficiency, and transient performance.
 
 ## 12. Summary
 

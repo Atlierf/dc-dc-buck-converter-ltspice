@@ -1,153 +1,79 @@
-# Design Notes for the 12 V-to-5 V Buck Converter
+# Design Notes — 12 V to 5 V Buck Converter
 
-## 1. System objective
+## Objective and modeled operating point
 
-The purpose of the converter is to step down a 12 V DC input to a regulated 5 V output suitable for low-voltage electronics. The project evaluates the converter’s electrical performance using LTspice and studies non-ideal component and semiconductor behaviour.
+The project studies conversion from a 12 V nominal DC input to a 5 V target at up to 1 A. The closed-loop LTspice testbench separately steps the input parameter through 10 V, 12 V, and 14 V. It switches the modeled load from 10 Ω (0.5 A nominal at 5 V) to 5 Ω (1 A nominal at 5 V) at 2 ms.
 
-## 2. Buck-converter operating principle
+The main model uses 100 kHz switching, 100 µH inductance, 220 µF output capacitance, 180 mΩ inductor DCR, and 130 mΩ capacitor ESR. The latter values and model provenance are recorded in `component_models.md`.
 
-A buck converter reduces voltage by switching the input supply on and off at a high frequency and then filtering the switched waveform using an inductor-capacitor network. In ideal operation, the average output is:
+## How a buck converter works
 
-Vout = D × Vin
+The switch connects the input to the inductor for part of each cycle. When it turns off, the inductor current continues through the freewheel diode. The inductor and capacitor smooth the switched energy into a DC output.
 
-where D is the duty cycle.
+For an ideal buck converter in continuous conduction:
 
-For Vin = 12 V and Vout = 5 V:
+\[
+V_{out}\approx D V_{in}
+\]
 
-D ≈ 5 / 12 ≈ 0.417
+At 12 V input and 5 V output, the ideal duty ratio is:
 
-This indicates that the high-side switch conducts for approximately 42% of each PWM period in the ideal model.
+\[
+D\approx\frac{5}{12}=0.4167
+\]
 
-## 3. Baseline design assumptions
+The closed-loop model changes duty in response to output error; its behavioral PID values are `KP=0.015`, `KI=65`, and `KD=1.2`. The separate baseline netlist uses a fixed duty ratio and is not a regulator.
 
-- Input voltage: 12 V nominal
-- Output voltage: 5 V
-- Maximum output current: 1 A
-- Switching frequency: 100 kHz
-- Inductor ripple target: 0.3 A
-- Output capacitor: 220 µF
-- Output capacitor ESR: modelled in simulation
-- Diode: Schottky, low forward drop
+## Inductor estimate
 
-## 4. Inductor design
+For a buck converter, an approximate inductor sizing relation is:
 
-A standard buck-regulator approximation for the inductor is:
+\[
+L=\frac{(V_{in}-V_{out})D}{f_s\Delta I_L}
+\]
 
-L = ((Vin - Vout) × D) / (fs × ΔIL)
+Using 12 V, 5 V, 100 kHz, and a 0.3 A peak-to-peak ripple target gives:
 
-Substituting the baseline values:
+\[
+L\approx\frac{(12-5)(0.4167)}{100\,000(0.3)}\approx97.2\,\mu H
+\]
 
-L ≈ ((12 - 5) × 0.417) / (100000 × 0.3)
+The selected model value is 100 µH. Its ideal nominal ripple estimate is approximately 0.292 App. At 1 A average output current, estimated peak inductor current is about 1.146 A. This is below the documented 1.70 A inductor saturation-current rating, though the model does not simulate inductance roll-off near saturation.
 
-L ≈ 97 µH
+## Output capacitor estimate
 
-A practical standard value is 100 µH. This provides a first-pass design with realistic ripple current and acceptable average current stress.
+Ignoring ESR, the capacitive ripple estimate is:
 
-The peak inductor current at 1 A output is approximately:
+\[
+\Delta V_C\approx\frac{\Delta I_L}{8f_sC}
+\]
 
-IL,peak ≈ Iout + ΔIL / 2
+For 0.3 A, 100 kHz, and 220 µF, this is about 1.7 mVpp. The simple ESR contribution at 130 mΩ is approximately:
 
-IL,peak ≈ 1 + 0.15 = 1.15 A
+\[
+\Delta V_{ESR}\approx\Delta I_L\times ESR\approx0.3(0.13)=39\,mV_{pp}
+\]
 
-Therefore, the selected inductor should have a saturation current comfortably above 1.15 A.
+These estimates do not replace measurements of the switching waveform. In the committed simulation, measured post-step output ripple was 72.71 mVpp at 10 V, 45.88 mVpp at 12 V, and 53.84 mVpp at 14 V.
 
-## 5. Output capacitor selection
+## Non-ideal models and limits
 
-The output capacitor filters the switched current and reduces ripple. A rough estimate for voltage ripple is:
+The closed-loop testbench models the MBRS340 Schottky diode using the LTspice library model, finite switch on-resistance of 30 mΩ, inductor DCR of 180 mΩ, and output-capacitor ESR of 130 mΩ. The switch is not a real MOSFET model and is driven by a ground-referenced behavioral PWM source. Switching losses, gate charge, thermal rise, PCB parasitics, inductor core loss, ESR variation, and component tolerances are not fully represented. Refer to `docs/component_models.md` before interpreting results as representative of hardware.
 
-ΔVout ≈ ΔIL / (8 × fs × C)
+## Recorded simulation outcomes
 
-For ΔIL = 0.3 A, fs = 100 kHz, and C = 220 µF:
+The committed run's post-step average output values are within ±2% of 5 V in the 4.0–4.9 ms measurement window. The ripple goal of <50 mVpp is met only at the 12 V input case. At 10 V and 14 V the measured ripple exceeds the goal.
 
-ΔV ≈ 0.3 / (8 × 100000 × 220e-6)
+The 10 V and 14 V cases were still outside the ±2% regulation band in the 1.5–1.9 ms pre-step window. Consequently, the 2 ms transition is not a clean load-step test from established steady state for those cases. Repeat the test with a longer pre-step settling interval before claiming load-step performance.
 
-ΔV ≈ 1.7 mV
+## Evaluation equations
 
-This is the ideal ripple contribution. In reality, ESR adds a significant ripple component and must be modelled explicitly because it can dominate the total ripple at moderate-to-high load currents.
+For power and efficiency, average input and output power over the same steady-state interval:
 
-## 6. Diode and switch selection
+\[
+P_{in}=\operatorname{avg}(-V(in)I(VBus)),\quad
+P_{out}=\operatorname{avg}(V(out)I(Bload)),\quad
+\eta=100\frac{P_{out}}{P_{in}}\%
+\]
 
-A Schottky diode is preferred because it has:
-
-- lower forward drop than a silicon diode
-- lower reverse recovery charge
-- lower switching loss
-
-The freewheel diode and the switching element should both be selected with ratings above:
-
-- output current requirement
-- maximum reverse voltage
-- thermal operating limits
-
-## 7. Non-ideal behaviour to investigate
-
-Real components introduce losses and dynamic effects. In this project, the following items are explicitly included in the LTspice model where practical:
-
-- inductor DC resistance (DCR)
-- capacitor ESR
-- diode forward voltage and junction characteristics
-- MOSFET on-resistance and finite switching behaviour
-- transient effects during startup and load steps
-
-These effects are important because they modify:
-
-- output regulation
-- ripple amplitude
-- efficiency
-- thermal stress
-- dynamic response
-
-## 8. Simulation strategy
-
-The simulation is set up to study:
-
-- steady-state output at nominal input
-- line regulation at 10 V, 12 V, and 14 V
-- load regulation at 0.5 A and 1 A
-- output ripple under steady-state operation
-- startup transient behaviour
-- transient response to sudden load changes
-
-## 9. Evaluation metrics
-
-The performance of the converter is judged according to:
-
-- output voltage accuracy
-- output ripple
-- load regulation
-- line regulation
-- transient settling time
-- observed losses and thermal implications
-
-The standard performance equations used are:
-
-Pin = Vin × Iin
-
-Pout = Vout × Iout
-
-η = (Pout / Pin) × 100%
-
-## 10. Practical engineering interpretation
-
-If the LTspice model shows a near-constant 5 V output under the selected conditions, the initial design is valid. If the output drifts with input voltage or load current, the design must be refined by changing:
-
-- duty cycle
-- inductor value
-- output capacitance and ESR
-- diode type and rating
-- switching frequency
-
-## 11. Recommended next steps
-
-A behavioral PI closed-loop testbench (`ltspice/buck_converter_closed_loop.cir`) is included in the repository to evaluate line regulation (10 V, 12 V, 14 V) and the 0.5 A-to-1 A load step at 2 ms. The next engineering development would be to replace the behavioral controller and idealized switches with a manufacturer-specific controller IC and component datasheet models:
-
-- reference voltage and feedback divider
-- error amplifier and compensation network
-- MOSFET gate-driver model and selected power MOSFET/diode models
-- inductor DCR and capacitor ESR from selected part datasheets
-
-This would allow more realistic evaluation of stability margins, efficiency, and transient performance.
-
-## 12. Summary
-
-This project uses a practical design approach to transform a 12 V source into a 5 V regulated output. The LTspice model is intentionally simple enough to understand but realistic enough to include essential non-ideal behaviours. It provides a solid basis for more advanced controller design and hardware prototyping.
+The negative sign for input power follows the LTspice voltage-source current convention in this netlist. The reported efficiencies are model-dependent estimates, not measured hardware efficiencies.

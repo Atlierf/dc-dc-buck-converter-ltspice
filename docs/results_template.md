@@ -1,46 +1,41 @@
-# Results Template
+# Results Record
 
-Values below are from an actual **LTspice 17.2.4 for MacOS** run of `ltspice/buck_converter_closed_loop.cir` (`.tran 0 5m 0 100n startup`, `100 kHz`, `L = 100 µH`, `DCR = 180 mΩ`, `C = 220 µF`, `ESR = 130 mΩ`, `D1 = onsemi MBRS340`, `S1 = SWMOD` assumed `30 mΩ`). See `docs/evidence/buck_converter_closed_loop.log.txt` and `docs/evidence/closed_loop_waveforms.svg`.
+This file records the values from the LTspice 17.2.4 for macOS run whose log is `results/buck_converter_closed_loop_10V_12V_14V.log.txt`. These values are simulation outputs from the behavioral model, not hardware measurements. If the netlist or parameters change, rerun and preserve a separate log before replacing these values.
 
-## 1. Regulation, Ripple, and Transient Results
+## Conditions and windows
 
-**Test conditions & measurement windows:**
-- **Pre-step steady state (`VPRE`):** `1.5 ms` to `1.9 ms` (`10 Ω` behavioral load, `0.5 A` nominal at `5 V`)
-- **Post-step steady state (`VPOST`, `VPP_POST`, `ILPP_POST`):** `4.0 ms` to `4.9 ms` (`5 Ω` behavioral load, `1.0 A` nominal at `5 V`)
-- **Load-step excursion (`VMIN_STEP`, `VMAX_STEP`):** `2.0 ms` to `4.99 ms` after `0.5 A → 1.0 A` load step at `2.0 ms`
-- **Settling time (`TSETTLE_MS`):** `(T_BAND_LAST - 2 ms) × 1000`, where `T_BAND_LAST` is the last crossing of `|V(out) - 5 V| = 0.1 V` (`4.9 V` to `5.1 V`, `±2%` band) for `t ≥ 2.0 ms`
+- Switching frequency: 100 kHz; transient stop time: 5 ms; maximum timestep: 100 ns.
+- Inductor: 100 µH with 180 mΩ modeled DCR.
+- Output capacitor: 220 µF with 130 mΩ modeled ESR.
+- Controller: `KP=0.015`, `KI=65`, `KD=1.2`; switch model `Ron=30 mΩ`; diode model MBRS340.
+- Input cases: 10 V, 12 V, and 14 V, stepped as separate runs.
+- Load transition: 10 Ω to 5 Ω at 2 ms.
+- `VPRE`: 1.5–1.9 ms; `VPOST`, ripple, and power measurements: 4.0–4.9 ms.
+- Load excursion and last boundary crossing: 2.0–4.99 ms; boundary band is 4.9–5.1 V.
 
-| Input (V) | Pre-step Vout avg (V) | Post-step Vout avg (V) | Post-step Vout ripple (mVpp) | Post-step IL ripple (App) | Load-step min (V) | Load-step max (V) | Settling time (ms) | Meets target? |
-|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| 10 | 4.7137 | 4.9269 | 72.71 | 0.2597 | 4.5814 | 4.9644 | 2.200 | Ripple > 50 mVpp (slow recovery from startup/step) |
-| 12 | 5.0228 | 4.9887 | 45.88 | 0.3049 | 4.8149 | 5.0116 | 0.460 | Yes |
-| 14 | 5.2457 | 5.0144 | 53.84 | 0.3401 | 4.9661 | 5.1436 | 0.034 | Ripple slightly > 50 mVpp (`130 mΩ` max ESR) |
+## Output and transient measurements
 
-## 2. Input Power, Output Power, and Efficiency (Post-Step `4.0 ms` to `4.9 ms`, `5 Ω` Load)
+| Input (V) | VPRE avg (V) | VPOST avg (V) | VPOST error (%) | Vout ripple (mVpp) | IL ripple (App) | Vmin after 2 ms (V) | Vmax after 2 ms (V) | Last boundary-crossing time after event (ms) |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 10 | 4.7137 | 4.9269 | -1.46 | 72.71 | 0.2597 | 4.5814 | 4.9644 | 2.200 |
+| 12 | 5.0228 | 4.9887 | -0.23 | 45.88 | 0.3049 | 4.8149 | 5.0116 | 0.460 |
+| 14 | 5.2457 | 5.0144 | +0.29 | 53.84 | 0.3401 | 4.9661 | 5.1436 | 0.034 |
 
-- **Input power (`PIN_POST`):** `AVG(-V(in)*I(VBus))` (negative sign accounts for LTspice convention where `I(VBus)` is positive into `VBus(+)`)
-- **Output power (`POUT_POST`):** `AVG(V(out)*I(Bload))` (`I(Bload)` flows from `out` to `0`)
-- **Efficiency (`EFF_POST`):** `100 × POUT_POST / PIN_POST`
+**Caveat:** At 10 V and 14 V, `VPRE` is outside the 4.9–5.1 V band. The 2 ms event therefore does not start from a demonstrably settled regulated operating point in these cases. The last-boundary-crossing value is a netlist measurement, but it is not a clean conventional load-step settling-time result for those cases. The 10 V output also has a minimum of 4.5814 V in the measured post-event interval.
 
-| Input (V) | Input power `PIN_POST` (W) | Output power `POUT_POST` (W) | Efficiency `EFF_POST` (%) |
+## Modeled power and efficiency
+
+| Input (V) | PIN_POST (W) | POUT_POST (W) | EFF_POST (%) |
 |---:|---:|---:|---:|
 | 10 | 5.2651 | 4.8550 | 92.21 |
 | 12 | 5.3766 | 4.9774 | 92.58 |
 | 14 | 5.4259 | 5.0288 | 92.68 |
 
-## 3. Other Records
+These values use the netlist's average power measurements over 4.0–4.9 ms. They characterize this model only; they are not hardware efficiency measurements and omit losses not represented by the idealized switch.
 
-- LTspice version: LTspice 17.2.4 for MacOS
-- Netlist filename / revision: `ltspice/buck_converter_closed_loop.cir` (PID + `MBRS340`, `DCR=180m`, `CESR=130m`)
-- Regulation band used for settling time: `4.9 V` to `5.1 V` (`±2%` around `5 V`, measured from `t = 2 ms`)
-- Controller gains tested: Initial `KP=0.08, KI=500` (oscillated `1.46–2.62 Vpp`); tuned `KP=0.015, KI=65, KD=1.2` with `Cdiff=1n, Rdiff=8k`
-- Model limitations or convergence notes: Pseudo-transient `.op` succeeded; `D1` uses LTspice `MBRS340`, `L1`/`C1` use Bourns `SRR1260-101M` / Panasonic `EEU-FR1C221` datasheet max `DCR`/`ESR`, `S1` remains an assumed idealized switch (`30 mΩ`) without gate-drive or switching-loss modeling (see `docs/component_models.md`)
-- Waveform and error-log filenames: `docs/evidence/closed_loop_waveforms.svg`, `docs/evidence/buck_converter_closed_loop.log.txt`
+## Run metadata
 
-## 4. Interpretation Checklist
-
-- Is post-step average output close to 5 V at every input point? Yes (`4.9269 V` to `5.0144 V`, within `1.5%` of `5 V`).
-- Is output ripple below the 50 mVpp project target? At `12 V` nominal (`45.88 mVpp`), yes; at `14 V` (`53.84 mVpp`) and `10 V` (`72.71 mVpp`), it exceeds `50 mVpp` due to the `130 mΩ` datasheet max ESR and slow `10 V` settling.
-- Does the output recover from the load increase without sustained oscillation? Yes, all three input cases settle without sustained oscillation.
-- Is inductor peak current within the selected inductor's rating? Yes (`SRR1260-101M` `Isat = 1.70 A` vs `~1.17 A` peak).
-- Are results consistent with the controller and component model assumptions? Yes, efficiency (`92.2%–92.7%`) reflects conduction losses of `SWMOD` (`30 mΩ`), `MBRS340`, and `DCR = 180 mΩ` without MOSFET switching/gate-drive or inductor core losses.
+- LTspice: 17.2.4 for macOS.
+- Netlist: `ltspice/buck_converter_closed_loop.cir` with `KP=0.015`, `KI=65`, `KD=1.2`, `DCR=180m`, `CESR=130m`, MBRS340 diode model, and 30 mΩ idealized switch resistance.
+- Controller tuning history: the log notes an earlier `KP=0.08`, `KI=500` setting oscillated; those are not the final run settings.
+- Evidence: log and SVG plots listed in `results/README.md`.

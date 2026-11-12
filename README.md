@@ -1,98 +1,103 @@
-# 12 V to 5 V Buck Converter (LTspice)
+# 12 V to 5 V Buck Converter Project
 
-This repository contains a practical LTspice simulation of a 12 V-to-5 V DC-DC buck converter intended for design and performance characterisation.
+This repository documents a complete engineering study of a 12 V-to-5 V DC-DC buck converter designed and simulated in LTspice.
 
 ## Objective
 
-Design and simulate a buck converter that converts a 12 V DC input to a regulated 5 V DC output, while investigating:
+The project aims to:
 
-- duty-cycle selection
-- inductor and capacitor sizing
-- non-ideal semiconductor and passive effects
-- line regulation with changing input voltage
-- load regulation and transient response with changing load current
+- design a 12 V-to-5 V buck converter based on practical switching-power theory
+- calculate the required component values from selected design constraints
+- simulate the converter in LTspice under nominal, line-variation, and load-variation conditions
+- study non-ideal behaviour due to inductor resistance, capacitor ESR, diode voltage drop, and finite switch conduction losses
+- evaluate output regulation, ripple, transient response, and efficiency trends
 
-## Design assumptions
+## Design specification
 
-- Nominal input voltage: 12 V
-- Output voltage target: 5 V
-- Maximum output current: 1 A
-- Switching frequency: 100 kHz
-- Inductor ripple target: 0.3 A peak-to-peak
-- Output capacitor: 220 µF with ESR modelled
+| Parameter | Target |
+|---|---:|
+| Input voltage | 12 V nominal |
+| Output voltage | 5 V regulated |
+| Maximum load current | 1 A |
+| Switching frequency | 100 kHz |
+| Inductor ripple target | 0.3 A peak-to-peak |
+| Output ripple target | low ripple, typically < 50 mVpp |
+| Operating input range | 10–14 V |
 
-## Design calculations
+## Design approach
 
-Ideal duty cycle:
+The converter is designed using the standard buck-converter relationship:
 
-D ≈ Vout / Vin = 5 / 12 ≈ 0.417
+Vout ≈ D × Vin
 
-Inductor estimate:
+For a 12 V input and 5 V output, the ideal duty cycle is approximately:
 
-L ≈ ((Vin - Vout) * D) / (fs * ΔIL)
+D ≈ 5 / 12 ≈ 0.417
 
-For Vin = 12 V, Vout = 5 V, fs = 100 kHz, ΔIL = 0.3 A:
+The initial inductor value is estimated as:
 
-L ≈ ((12 - 5) * 0.417) / (100000 * 0.3) ≈ 97 µH
+L ≈ ((Vin - Vout) × D) / (fs × ΔIL)
 
-A practical starting point is therefore:
+Using Vin = 12 V, Vout = 5 V, fs = 100 kHz, and ΔIL = 0.3 A gives:
 
-- L = 100 µH
-- output capacitor = 220 µF
-- diode = Schottky, current rating above 1.5 A
-- ideal MOSFET or switching element model with finite Ron
+L ≈ 97 µH
 
-## LTspice simulation
+A practical starting value of 100 µH is therefore selected.
 
-The file `ltspice/buck_converter.cir` contains a SPICE netlist that models:
+## Repository structure
 
-- ideal 12 V source
-- a high-side switch driven by a 100 kHz PWM signal
-- freewheel diode
-- 100 µH inductor with DCR
-- 220 µF output capacitor with ESR
-- 5 Ω load for a nominal 1 A output
-- transient analysis for output voltage and inductor-current behaviour
-
-This is a practical baseline testbench for exploring switching behaviour and ripple. The duty cycle is set to 0.417 as a first-pass design point.
-
-## How to run in LTspice
-
-1. Open LTspice.
-2. Go to File → Open and select `ltspice/buck_converter.cir`.
-3. Run the transient simulation.
-4. Plot:
-   - output voltage (`V(out)`)
-   - inductor current (`I(L1)`)
-   - switch node (`V(sw)`)
-   - diode current if extra plots are added
-
-## Example investigations
-
-- Input-voltage sweep: 10 V, 12 V, 14 V
-- Load sweep: 0.5 A, 1 A
-- Load step: 0.5 A → 1 A
-- Add ESR / DCR to compare ideal vs. non-ideal behaviour
-- Compare waveform ripple and regulation at each operating point
-
-## Notes
-
-This project intentionally starts from a straightforward buck-converter model to make the power-stage behaviour easy to analyse. It is ideal for a first pass before designing a closed-loop regulator with compensation and synchronous switching.
-
-If you want to extend it further, the next practical step is to add:
-
-- a feedback comparator and reference
-- a MOSFET gate driver
-- a compensation network
-- a more realistic MOSFET model
-- thermal loss estimation
-
-## Repository contents
-
-- `README.md` — project overview and design summary
-- `docs/design_notes.md` — more detailed notes and equations
+- `README.md` — overview and project summary
+- `docs/design_notes.md` — design equations and engineering notes
+- `docs/project_report.md` — complete engineering report with methodology and discussion
 - `ltspice/buck_converter.cir` — LTspice transient simulation netlist
 
-## Author
+## Simulation scope
 
-This project was created for a DC-DC buck converter design and performance characterisation study.
+The LTspice file includes:
+
+- a 12 V supply
+- ideal PWM-controlled switch
+- Schottky freewheel diode
+- 100 µH inductor and output capacitor
+- ESR and DCR modelling
+- nominal 1 A resistive load
+- parameter sweeps for input and load variation
+
+The project evaluates:
+
+- startup behaviour
+- steady-state output voltage
+- inductor current ripple
+- output ripple
+- line regulation
+- load regulation
+- transient response under load steps
+
+## How to use
+
+1. Open LTspice.
+2. Open `ltspice/buck_converter.cir`.
+3. Run the transient analysis.
+4. Plot desired signals such as:
+   - V(out)
+   - I(L1)
+   - V(sw)
+   - output ripple
+
+## Expected findings
+
+At nominal conditions, the output should settle close to 5 V. The real implementation will show deviation from the ideal model because of active losses, component parasitics, and switching dynamics. These effects are explored in the report and design notes.
+
+## Future work
+
+Possible extensions include:
+
+- closed-loop regulation with feedback and compensation
+- synchronous buck converter design
+- MOSFET and diode loss estimation
+- thermal analysis and efficiency mapping
+- PCB implementation and prototype validation
+
+## Contribution
+
+This project is intended for engineering study and simulation-based analysis. It can be used as a basis for coursework, design review, or a prototype development project.

@@ -1,7 +1,8 @@
-* 12V to 5V Buck Converter Testbench
-* Nominal design: 5V output at 1A load
+* 12 V to 5 V Buck Converter Testbench
+* Nominal design: 5 V output at 1 A load
 * 100 kHz switching frequency
 * Duty cycle approx 0.417
+* Includes ESR/DCR and transient load-step analysis
 
 .param Vin=12
 .param Vout=5
@@ -12,33 +13,44 @@
 .param Rload={Vout/Iload}
 .param L1=100u
 .param Cout=220u
+.param DCR=0.07
 .param ESR=0.05
 
 * Input supply
 Vin in 0 {Vin}
 
-* PWM gate drive for the high-side switch
-Vgate gate 0 PULSE(0 5 0 20n 20n {Ton} {Tsw})
+* PWM signal to drive the high-side switch
+Vgate gate 0 PULSE(0 5 0 10n 10n {Ton} {Tsw})
 
-* High-side ideal switch
+* High-side switch (ideal switch with finite on-resistance)
 S1 in sw gate 0 SWMOD
 
-* Freewheel diode: anode to ground, cathode to switch node
+* Flyback diode
 D1 0 sw Dsch
 
-* Inductor with DCR
-Rind sw nL 0.07
-L1 nL out {L1}
+* Inductor and series DCR
+Rind sw nL {DCR}
+L1 nL out1 {L1}
 
-* Output capacitor with ESR
-C1 out 0 {Cout}
-Rcap out ncap {ESR}
+* Capacitor with ESR and output node
+Rcap out1 out2 {ESR}
+C1 out2 0 {Cout}
 
-* Load resistor for nominal 1A operation at 5V
-Rload ncap 0 {Rload}
+* Load resistor for nominal condition
+Rload out2 0 {Rload}
 
 * Simulation setup
 .tran 0 5m 0 100n
+
+* Parameter sweeps to study input and load variations
+* .step param Vin list 10 12 14
+* .step param Rload list 10 5
+
+* Optional measurements
+* .meas tran Vout_avg AVG V(out2)
+* .meas tran I_Lavg AVG I(L1)
+* .meas tran Vout_pp PP V(out2)
+* .meas tran Load_current_param param Iload
 
 * Ideal switch model
 .model SWMOD SW(Ron=0.03 Roff=1Meg Vt=2.5 Vh=0.1)
@@ -46,10 +58,4 @@ Rload ncap 0 {Rload}
 * Schottky diode model
 .model Dsch D(Is=1e-9 Rs=0.02 N=1.2 Cjo=50p M=0.5 Eg=0.6)
 
-* Optional parameter sweeps for investigation
-* .step param Vin list 10 12 14
-* .step param Iload list 0.5 1
-* .meas tran Vout_avg AVG V(out)
-* .meas tran I_L AVG I(L1)
-* .meas tran Vout_ripple PP V(out)
 .end

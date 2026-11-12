@@ -1,6 +1,6 @@
 # 12 V to 5 V Buck Converter — LTspice Study
 
-This repository contains a simulation study of a 12 V-to-5 V buck converter. It includes a fixed-duty power-stage example, an educational feedback-controlled switching model, first-pass design calculations, component-model notes, LTspice output files, and a report based on the committed simulation log.
+This repository contains a simulation study of a 12 V-to-5 V buck converter. It includes a fixed-duty power-stage example, a feedback-controlled switching model, first-pass design calculations, component-model notes, LTspice output files, and a report based on the committed simulation log.
 
 ## Design point
 

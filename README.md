@@ -1,107 +1,29 @@
-# 12 V to 5 V Buck Converter Project
+# 12 V to 5 V Buck Converter LTspice Project
 
-This repository contains a complete engineering study of a 12 V-to-5 V DC-DC buck converter designed and simulated in LTspice.
+This project develops and characterises a 12 V-to-5 V buck-converter simulation. It includes a fixed-duty power-stage example and a separate behavioral closed-loop testbench for regulation and load-transient investigation.
 
-## Project objective
+## Baseline specification
 
-The project aims to:
+- 12 V nominal input; 10 V, 12 V, and 14 V line test points
+- 5 V output target, up to 1 A load
+- 100 kHz switching frequency
+- 100 µH inductor, selected from an approximately 0.3 A peak-to-peak ripple target
+- 220 µF output capacitor
+- DCR and ESR included as assumed parasitic values
 
-- design a 12 V-to-5 V buck converter from first principles
-- calculate component values using switching-power equations
-- simulate the power stage in LTspice
-- evaluate the effect of non-ideal components
-- analyse the output voltage, ripple, and transient response
+## Files
 
-## Design specification
+- `ltspice/buck_converter.cir` — fixed-duty baseline power stage; not a regulated converter.
+- `ltspice/buck_converter_closed_loop.cir` — behavioral PI/PWM closed-loop testbench, stepped input, and 0.5 A-to-1 A load step.
+- `docs/design_notes.md` — operating principle and component calculations.
+- `docs/project_report.md` — report draft with method, equations, limitations, and result fields to complete after running LTspice.
+- `docs/simulation_procedure.md` — instructions for running the closed-loop tests and interpreting results.
+- `docs/results_template.md` — blank table for actual simulation measurements.
 
-| Parameter | Value |
-|---|---:|
-| Input voltage | 12 V nominal |
-| Output voltage | 5 V regulated |
-| Maximum load current | 1 A |
-| Switching frequency | 100 kHz |
-| Inductor ripple target | 0.3 A peak-to-peak |
-| Output ripple target | low ripple, typically < 50 mVpp |
-| Input operating range | 10 V to 14 V |
+## Quick start
 
-## Baseline design summary
+Open `ltspice/buck_converter_closed_loop.cir` in LTspice and run the transient simulation. Plot `V(out)`, `I(L1)`, `V(sw)`, and `V(duty)`. The simulation runs 10 V, 12 V, and 14 V input cases and steps the load from 0.5 A to 1 A at 2 ms. See `docs/simulation_procedure.md` for details.
 
-The ideal buck-converter duty cycle is:
+## Important limitations
 
-D ≈ Vout / Vin = 5 / 12 ≈ 0.417
-
-The initial inductor value is estimated from:
-
-L ≈ ((Vin - Vout) × D) / (fs × ΔIL)
-
-For Vin = 12 V, Vout = 5 V, fs = 100 kHz, and ΔIL = 0.3 A:
-
-L ≈ 97 µH
-
-A practical starting value of 100 µH is selected.
-
-## Repository contents
-
-- `README.md` — overview of the project
-- `docs/design_notes.md` — engineering notes and equations
-- `docs/project_report.md` — written project report draft
-- `docs/simulation_procedure.md` — how to run the LTspice tests
-- `docs/results_template.md` — measurement table for collecting results
-- `ltspice/buck_converter.cir` — LTspice netlist for the buck-converter power stage
-
-## What the simulation currently models
-
-The LTspice netlist represents:
-
-- a 12 V DC source
-- a switching transistor stage
-- a Schottky freewheel diode
-- 100 µH inductor with series resistance
-- 220 µF output capacitor with ESR
-- nominal 1 A resistive load
-
-It is suitable for evaluating:
-
-- the switching waveform
-- inductor current ripple
-- output voltage ripple
-- start-up transient behaviour
-- line and load effects in the power stage
-
-## Important note
-
-This version is a baseline power-stage simulation. It does not yet include a closed-loop feedback controller that automatically regulates the output under changing load and input conditions. The project therefore represents a solid engineering starting point, but a full regulated converter would require:
-
-- feedback divider
-- error amplifier or comparator
-- PWM control loop
-- compensation network
-- a more realistic gate-driver and MOSFET model
-
-## How to run the LTspice simulation
-
-1. Open LTspice.
-2. Open `ltspice/buck_converter.cir`.
-3. Run the transient analysis.
-4. Plot:
-   - `V(out2)` for output voltage
-   - `I(L1)` for inductor current
-   - `V(sw)` for the switch node
-
-## What to record
-
-Use `docs/results_template.md` and record:
-
-- output voltage at each input/load condition
-- ripple voltage
-- inductor ripple current
-- settling time after load step
-- thermal or loss observations if available
-
-## Future extension
-
-The next development step is to add a closed-loop regulated design so the output remains at 5 V when the input source or load current changes. This would be a more complete engineering implementation and a stronger final project.
-
-## Summary
-
-The repository is already a credible starter project for a 12 V-to-5 V buck converter and contains the basic theory, calculations, LTspice model, and project documentation. It is now ready for simulation execution and result collection, while remaining open to further extension into a fully regulated converter design.
+The closed-loop controller is a behavioral educational model with initial, unverified PI gains; it is not a commercial controller or a stability-validated design. Semiconductor and passive models are simplified, and ESR/DCR values are assumptions. Run the simulation, inspect its waveforms and error log, tune the controller if needed, and replace assumed models with actual datasheet models before drawing design conclusions. No simulation results are claimed until the blank results template is filled from an LTspice run.

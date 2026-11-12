@@ -1,28 +1,26 @@
-# Results template for 12 V-to-5 V buck-converter project
+# Results Template
 
-Use this table when collecting LTspice simulation data.
+Fill this table with values from an actual LTspice run. Do not enter analytical estimates as simulation measurements. Record the LTspice version and save waveforms and the SPICE error log alongside the report if required.
 
-| Test case | Vin (V) | Load (A) | Vout average (V) | Vout ripple (mVpp) | Inductor ripple (A) | Observation |
-|---|---:|---:|---:|---:|---:|---|
-| Nominal | 12 | 1.0 |  |  |  |  |
-| Low input | 10 | 1.0 |  |  |  |  |
-| High input | 14 | 1.0 |  |  |  |  |
-| Light load | 12 | 0.5 |  |  |  |  |
-| Full load | 12 | 1.0 |  |  |  |  |
-| Load step up | 12 | 0.5 → 1.0 |  |  |  |  |
-| Load step down | 12 | 1.0 → 0.5 |  |  |  |  |
+| Input (V) | Pre-step Vout avg (V) | Post-step Vout avg (V) | Post-step Vout ripple (mVpp) | Post-step IL ripple (App) | Load-step minimum (V) | Settling time (ms) | Meets target? |
+|---:|---:|---:|---:|---:|---:|---:|---|
+| 10 |  |  |  |  |  |  |  |
+| 12 |  |  |  |  |  |  |  |
+| 14 |  |  |  |  |  |  |  |
 
-## Suggested evaluation points
+## Other records
 
-- Output stays close to 5 V at 12 V input
-- Ripple magnitude is acceptable
-- Inductor current remains continuous in normal operation
-- Output does not severely overshoot or undershoot during load transients
+- LTspice version: [enter version]
+- Netlist filename / revision: [enter]
+- Regulation band used for settling time: [enter]
+- Controller gains tested: [enter KP and KI]
+- Model limitations or convergence notes: [enter]
+- Waveform and error-log filenames: [enter]
 
-## Example discussion points
+## Interpretation checklist
 
-- DCR reduces output voltage slightly
-- ESR increases ripple
-- Diode forward drop affects power efficiency
-- Switch resistance adds conduction loss
-- The fixed-duty power stage is not a fully compensated regulator
+- Is post-step average output close to 5 V at every input point?
+- Is output ripple below the 50 mVpp project target?
+- Does the output recover from the load increase without sustained oscillation?
+- Is inductor peak current within the selected inductor's rating?
+- Are results consistent with the controller and component model assumptions?

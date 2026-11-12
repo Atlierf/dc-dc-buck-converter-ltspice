@@ -1,105 +1,31 @@
-# LTspice simulation procedure
+# LTspice Simulation Procedure
 
-This guide explains how to run the baseline buck-converter model and how to collect useful results.
+The repository contains two netlists:
 
-## 1. Open the circuit
+- `buck_converter.cir`: fixed-duty baseline power-stage model.
+- `buck_converter_closed_loop.cir`: educational behavioral-PI closed-loop version with an input sweep and load step. Use this file for regulation and transient studies.
 
-Open LTspice and load:
+## Run the closed-loop study
 
-`ltspice/buck_converter.cir`
+1. Open `ltspice/buck_converter_closed_loop.cir` in LTspice.
+2. Run the simulation. The `.step` directive runs the test at 10 V, 12 V, and 14 V input.
+3. Plot `V(out)` (output), `I(L1)` (inductor current), `V(sw)` (switch node), `V(duty)` (controller duty command), and `V(err)` (feedback error).
+4. The load changes from 0.5 A nominal to 1 A at 2 ms. Inspect the output response around that time.
+5. Open **View → SPICE Error Log** to see `.meas` outputs: pre-step average output, post-step average output, post-step output peak-to-peak ripple, and post-step inductor-current ripple. Each measurement is repeated for each stepped input value.
+6. Enter actual results in `results_template.md`. Save waveform screenshots and the LTspice error log with the project if required by your course.
 
-## 2. Check the node names
+## Interpret the model carefully
 
-The output node is named `out2` in the current netlist. The default plot should therefore use:
+- The switching period is 10 µs (100 kHz); the carrier ramps from 0 to 1 each period.
+- A behavioral PI controller changes duty based on the difference between 5 V reference and output voltage.
+- The PI gains are initial educational values, not verified compensation. If the output oscillates, saturates, or does not settle, tune the gains and report what changed.
+- The switch, diode, DCR, and ESR are simplified models. Replace them with selected-part datasheet models for a component-specific design.
+- No numerical results are pre-filled because the netlist must be run in LTspice to obtain them.
 
-- `V(out2)`
-- `I(L1)`
-- `V(sw)`
+## Measure load-step settling time
 
-## 3. Run the transient analysis
+Use the waveform cursor to find the point when output voltage returns to the chosen regulation band after 2 ms. State the regulation band used (for example, 4.9 V to 5.1 V) and the settling-time definition in the report. The provided average and ripple measurements do not calculate settling time automatically.
 
-The file already contains:
+## Fixed-duty baseline
 
-`.tran 0 5m 0 100n`
-
-This will simulate 5 ms with a 100 ns maximum time step.
-
-## 4. Plot the key signals
-
-Plot the following:
-
-- output voltage: `V(out2)`
-- inductor current: `I(L1)`
-- switch node: `V(sw)`
-
-These plots will show:
-
-- startup behaviour
-- switching waveform
-- current ripple
-- output ripple
-- settling behaviour
-
-## 5. Measure ripple
-
-Use LTspice measurement tools to determine:
-
-- output ripple voltage: `PP` of `V(out2)`
-- inductor current ripple: `PP` of `I(L1)`
-
-Typical markers are:
-
-- `V(out2)`
-- `I(L1)`
-
-## 6. Run a simple input sweep
-
-The file includes commented sweep commands:
-
-```
-* .step param Vin list 10 12 14
-* .step param Rload list 10 5
-```
-
-To test line variation, uncomment the first line and rerun. To test load variation, change the load and rerun.
-
-## 7. Record the result for each condition
-
-For each operating point, record:
-
-- input voltage
-- output voltage
-- output ripple
-- inductor current ripple
-- load current
-
-## 8. Observe transient response
-
-If you want to test load-step behaviour, edit the load condition and measure how the output responds to the change. Typical quantities to record:
-
-- maximum output voltage dip
-- maximum overshoot
-- settling time
-
-## 9. Interpretation
-
-The output should be near 5 V under nominal conditions. The exact result depends on:
-
-- duty cycle
-- ESR and DCR values
-- diode forward drop
-- switch resistance
-- output capacitor value
-
-This is a baseline simulation and does not yet contain a closed control loop.
-
-## 10. Next step
-
-For a fully regulated converter, the next stage is to add:
-
-- output sensing
-- reference voltage
-- comparator or error amplifier
-- PWM generation based on the error signal
-
-This would permit regulation under changing load and input conditions.
+The file `buck_converter.cir` is useful for observing power-stage switching at a fixed duty cycle. It cannot demonstrate closed-loop regulation because it does not sense or correct output-voltage error.

@@ -1,0 +1,66 @@
+* Closed-loop educational buck-converter testbench for LTspice
+* Target: 12 V nominal to 5 V, 1 A maximum
+* 100 kHz switching; 100 uH inductor; 220 uF output capacitor
+* Behavioral PI control and PWM comparator; tune and verify before relying on results.
+* This is not a manufacturer-specific controller model.
+
+.param VIN_DC=12
+.param VREF=5
+.param FS=100k
+.param TSW={1/FS}
+.param LVAL=100u
+.param COUT=220u
+.param DCR=70m
+.param CESR=50m
+.param KP=0.08
+.param KI=500
+
+* Input, stepped for line-regulation study
+VBus in 0 {VIN_DC}
+.step param VIN_DC list 10 12 14
+
+* PWM carrier: linear ramp from 0 to 1 once per switching period.
+* The 1 ns falling edge resets the carrier at the end of each period.
+Vtri ramp 0 PULSE(0 1 0 {TSW-1n} 1n 0 {TSW})
+
+* PI controller: duty command is bounded from 5% to 90%.
+* Error is positive when the output is below the 5 V reference.
+Berr err 0 V={VREF-V(out)}
+Bctrl duty 0 V=limit(0.4167+KP*V(err)+V(ci),0.05,0.90)
+
+* Anti-windup behavior: freeze integration if saturated and error pushes farther
+* into saturation. Cint=1 F makes injected current numerically equal to d(Vci)/dt.
+Bint 0 ci I=if(V(duty)>=0.899 && V(err)>0,0,if(V(duty)<=0.051 && V(err)<0,0,KI*V(err)))
+Cint ci 0 1 IC=0
+Rleak ci 0 100Meg
+
+* PWM comparator and high-side switch
+Bgate gate 0 V=if(V(ramp)<V(duty),5,0)
+S1 in sw gate 0 SWMOD
+.model SWMOD SW(Ron=30m Roff=1Meg Vt=2.5 Vh=0.1)
+
+* Freewheel Schottky-style diode: anode at ground, cathode at switch node
+D1 0 sw Dsch
+.model Dsch D(Is=1n Rs=20m N=1.2 Cjo=50p M=0.5 Eg=0.6)
+
+* Inductor and its winding resistance
+Rind sw nL {DCR}
+L1 nL out {LVAL}
+
+* Output capacitor with ESR. Load is connected to the output node, before ESR.
+Rcap out cap  {CESR}
+C1 cap 0 {COUT} IC=0
+
+* Load step: 0.5 A nominal at 5 V, increasing to 1 A at 2 ms.
+* This behavioral current load scales with output voltage like a resistor.
+Bload out 0 I=if(time<2m,V(out)/10,V(out)/5)
+
+* Transient simulation and steady-state measurements around the load step.
+.options plotwinsize=0
+.tran 0 5m 0 100n startup
+.meas tran VPRE AVG V(out) FROM=1.5m TO=1.9m
+.meas tran VPOST AVG V(out) FROM=4m TO=4.9m
+.meas tran VPP_POST PP V(out) FROM=4m TO=4.9m
+.meas tran ILPP_POST PP I(L1) FROM=4m TO=4.9m
+
+.end

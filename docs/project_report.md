@@ -4,7 +4,7 @@
 
 This project uses LTspice to study a 12 V-to-5 V buck-converter model at up to a nominal 1 A load. First-pass calculations set a 100 kHz switching frequency, 100 µH inductor, and 220 µF output capacitor. The closed-loop testbench uses a behavioral PID/PWM controller and models a Schottky diode, finite switch resistance, inductor DCR, and output-capacitor ESR. The committed LTspice run includes input cases of 10 V, 12 V, and 14 V and a modeled load change from 0.5 A to 1 A.
 
-In the recorded run, post-transition average output was 4.9269–5.0144 V over the selected measurement window. Output ripple was below the 50 mVpp project target only at 12 V input. Because the controller was not in the ±2% band before the load transition at 10 V and 14 V, those cases do not represent a clean load-step test from established steady state. Results apply only to the simplified simulation model; they are not hardware measurements.
+Based on the record, average output was 4.927 – 5.014 V over the selected measurement window. Output ripple was below the 50 mVpp project target only at 12 V input. Because the controller was not in the ±2% band before the load transition at 10 V and 14 V, those cases do not represent a clean load-step test from established steady state. Results apply only to the simplified simulation model; they are not hardware measurements.
 
 ## 1. Introduction
 

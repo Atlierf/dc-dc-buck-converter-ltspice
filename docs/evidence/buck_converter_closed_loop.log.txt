@@ -1,6 +1,6 @@
 LTspice 17.2.4 for MacOS
 Circuit: * Closed-loop educational buck-converter testbench for LTspice
-Start Time: Thu Nov 12 18:19:49 2026
+Start Time: Thu Nov 12 18:23:22 2026
 solver = Normal
 Maximum thread count: 1
 
@@ -54,5 +54,35 @@ Measurement: vmax_step
      2	5.01163	0.002	0.00499
      3	5.14355	0.002	0.00499
 
-Total elapsed time: 1.960 seconds.
+Measurement: t_band_last
+  step	time	at
+     1	0.00420006	0.00420006
+     2	0.00246002	0.00246002
+     3	0.00203436	0.00203436
+
+Measurement: tsettle_ms
+  step	(t_band_last-2m)*1000
+     1	2.20006
+     2	0.460019
+     3	0.0343633
+
+Measurement: pin_post
+  step	AVG(-v(in)*i(vbus))	FROM	TO
+     1	5.26507	0.004	0.0049
+     2	5.37662	0.004	0.0049
+     3	5.42588	0.004	0.0049
+
+Measurement: pout_post
+  step	AVG(v(out)*i(bload))	FROM	TO
+     1	4.85496	0.004	0.0049
+     2	4.97741	0.004	0.0049
+     3	5.02884	0.004	0.0049
+
+Measurement: eff_post
+  step	100*pout_post/pin_post
+     1	92.2107
+     2	92.5751
+     3	92.6826
+
+Total elapsed time: 2.035 seconds.
 

@@ -63,6 +63,8 @@ C1 cap 0 {COUT} IC=0
 Bload out 0 I=if(time<2m,V(out)/10,V(out)/5)
 
 * Transient simulation and steady-state measurements around the load step.
+* Note on polarity: I(VBus) is positive into VBus(+), so delivered power is -V(in)*I(VBus).
+* I(Bload) flows from out to 0, so load power is +V(out)*I(Bload).
 .options plotwinsize=0
 .tran 0 5m 0 100n startup
 .meas tran VPRE AVG V(out) FROM=1.5m TO=1.9m
@@ -71,5 +73,10 @@ Bload out 0 I=if(time<2m,V(out)/10,V(out)/5)
 .meas tran ILPP_POST PP I(L1) FROM=4m TO=4.9m
 .meas tran VMIN_STEP MIN V(out) FROM=2m TO=4.99m
 .meas tran VMAX_STEP MAX V(out) FROM=2m TO=4.99m
+.meas tran T_BAND_LAST FIND time WHEN abs(V(out)-5)=0.1 TD=2m CROSS=LAST
+.meas tran TSETTLE_MS PARAM (T_BAND_LAST-2m)*1000
+.meas tran PIN_POST AVG -V(in)*I(VBus) FROM=4m TO=4.9m
+.meas tran POUT_POST AVG V(out)*I(Bload) FROM=4m TO=4.9m
+.meas tran EFF_POST PARAM 100*POUT_POST/PIN_POST
 
 .end

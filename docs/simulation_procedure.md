@@ -2,30 +2,39 @@
 
 The repository contains two netlists:
 
-- `buck_converter.cir`: fixed-duty baseline power-stage model.
-- `buck_converter_closed_loop.cir`: educational behavioral-PI closed-loop version with an input sweep and load step. Use this file for regulation and transient studies.
+- `ltspice/buck_converter.cir`: fixed-duty baseline power-stage model (`D = 0.417`, `12 V` input, `5 Ω` load).
+- `ltspice/buck_converter_closed_loop.cir`: closed-loop PID/PWM testbench with an input-voltage sweep (`10 V`, `12 V`, `14 V`) and a `0.5 A` to `1.0 A` load step at `2 ms`. Use this file for regulation, transient, and efficiency studies.
 
-## Run the closed-loop study
+## 1. Run the closed-loop study
 
-1. Open `ltspice/buck_converter_closed_loop.cir` in LTspice.
-2. Run the simulation. The `.step` directive runs the test at 10 V, 12 V, and 14 V input.
-3. Plot `V(out)` (output), `I(L1)` (inductor current), `V(sw)` (switch node), `V(duty)` (controller duty command), and `V(err)` (feedback error).
-4. The load changes from 0.5 A nominal to 1 A at 2 ms. Inspect the output response around that time.
-5. Open **View → SPICE Error Log** to see `.meas` outputs: pre-step average output, post-step average output, post-step output peak-to-peak ripple, and post-step inductor-current ripple. Each measurement is repeated for each stepped input value.
-6. Enter actual results in `results_template.md`. Save waveform screenshots and the LTspice error log with the project if required by your course.
+1. Open `ltspice/buck_converter_closed_loop.cir` in LTspice (GUI: **File → Open...**, or CLI batch mode: `/Applications/LTspice.app/Contents/MacOS/LTspice -b ltspice/buck_converter_closed_loop.cir`).
+2. Run the transient analysis (`.tran 0 5m 0 100n startup` with `.step param VIN_DC list 10 12 14`).
+3. Plot `V(out)` (output voltage), `I(L1)` (inductor current), `V(sw)` (switch node), `V(duty)` (controller duty command), and `V(err)` (feedback error).
+4. Inspect the `0.5 A → 1.0 A` load step at `t = 2 ms` (`Bload` switches from `V(out)/10` to `V(out)/5`).
+5. Open **View → SPICE Error Log** (or convert the UTF-16LE `.log` file with `iconv -f UTF-16LE -t UTF-8`) to read all `.meas` outputs for each stepped `VIN_DC` (`10 V`, `12 V`, `14 V`).
+6. Record the measured values in `docs/results_template.md`.
 
-## Interpret the model carefully
+## 2. Measurement definitions in `ltspice/buck_converter_closed_loop.cir`
 
-- The switching period is 10 µs (100 kHz); the carrier ramps from 0 to 1 each period.
-- A behavioral PI controller changes duty based on the difference between 5 V reference and output voltage.
-- The PI gains are initial educational values, not verified compensation. If the output oscillates, saturates, or does not settle, tune the gains and report what changed.
-- The switch, diode, DCR, and ESR are simplified models. Replace them with selected-part datasheet models for a component-specific design.
-- No numerical results are pre-filled because the netlist must be run in LTspice to obtain them.
+All measurements are repeated automatically for `VIN_DC = 10`, `12`, and `14`:
 
-## Measure load-step settling time
+- **Pre-step average output (`VPRE`):** `AVG V(out)` from `1.5 ms` to `1.9 ms` (`10 Ω` load, `0.5 A` nominal at `5 V`).
+- **Post-step average output (`VPOST`):** `AVG V(out)` from `4.0 ms` to `4.9 ms` (`5 Ω` load, `1.0 A` nominal at `5 V`).
+- **Post-step output ripple (`VPP_POST`):** `PP V(out)` from `4.0 ms` to `4.9 ms`.
+- **Post-step inductor-current ripple (`ILPP_POST`):** `PP I(L1)` from `4.0 ms` to `4.9 ms`.
+- **Load-step minimum & maximum (`VMIN_STEP`, `VMAX_STEP`):** `MIN` and `MAX` of `V(out)` from `2.0 ms` to `4.99 ms` (avoids exact end-of-simulation boundary `5.0 ms`).
+- **Settling time (`TSETTLE_MS`):** `(T_BAND_LAST - 2m) * 1000`, where `T_BAND_LAST` finds the last time `|V(out) - 5| = 0.1` for `t ≥ 2.0 ms` (`4.9 V` to `5.1 V`, `±2%` regulation band).
+- **Input power, output power, and efficiency (`PIN_POST`, `POUT_POST`, `EFF_POST`):** Measured from `4.0 ms` to `4.9 ms`:
+  - `PIN_POST = AVG(-V(in)*I(VBus))` — negated because LTspice defines `I(VBus)` positive *into* `VBus(+)`, so delivered power is `-V(in)*I(VBus)`.
+  - `POUT_POST = AVG(V(out)*I(Bload))` — positive because `Bload out 0` current flows from `out` to ground.
+  - `EFF_POST = 100*POUT_POST/PIN_POST` (%).
 
-Use the waveform cursor to find the point when output voltage returns to the chosen regulation band after 2 ms. State the regulation band used (for example, 4.9 V to 5.1 V) and the settling-time definition in the report. The provided average and ripple measurements do not calculate settling time automatically.
+## 3. Interpret the model carefully
 
-## Fixed-duty baseline
+- The switching period is `10 µs` (`100 kHz`); the carrier ramps from `0` to `1` each period.
+- The controller uses tuned behavioral PID parameters (`KP = 0.015`, `KI = 65`, `KD = 1.2` with a `Cdiff = 1n`, `Rdiff = 8k` band-limited derivative on `V(out)`).
+- `D1` (`onsemi MBRS340`) uses LTspice's built-in `standard.dio` model; `L1` (`180 mΩ` max DCR) and `C1` (`130 mΩ` max ESR) use Bourns `SRR1260-101M` and Panasonic `EEU-FR1C221` datasheet maximums; `S1` (`SWMOD`, `30 mΩ`) remains an assumed idealized switch without gate-drive or switching-loss modeling. See `docs/component_models.md` for details.
 
-The file `buck_converter.cir` is useful for observing power-stage switching at a fixed duty cycle. It cannot demonstrate closed-loop regulation because it does not sense or correct output-voltage error.
+## 4. Fixed-duty baseline
+
+`ltspice/buck_converter.cir` is preserved for observing power-stage switching at a fixed duty cycle (`0.417`). It cannot demonstrate closed-loop regulation because it does not sense or correct output-voltage error.
